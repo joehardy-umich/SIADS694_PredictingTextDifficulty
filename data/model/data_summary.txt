@@ -1,0 +1,5 @@
+number of records:(416768, 1)
+label distribution:1    208384
+0    208384
+Name: label, dtype: int64
+number of terms:1
