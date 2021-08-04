@@ -1,0 +1,36 @@
+schema: '2.0'
+stages:
+  vectorize_training_data:
+    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/model/vectorized_train.csv
+      data/model/tfidf.pkl
+    deps:
+    - path: data/model/WikiLarge_Train.csv
+      md5: cfd2316ec1657d01452a26d239e16249
+      size: 51285176
+    - path: src/vectorize_model_train_data.py
+      md5: b789c2333376f636acdb1bc51d9902df
+      size: 1055
+    outs:
+    - path: data/model/tfidf.pkl
+      md5: 2726d599bb36b2efb12fea6bbcbcddd6
+      size: 4926879
+    - path: data/model/vectorized_train.csv
+      md5: e250e40fb2aa45009909ec59fb747a27
+      size: 135441783
+  explore1:
+    cmd: python src/explore_model_data.py data/model/WikiLarge_Train.csv data/model/vectorized_train.csv
+      data/model/data_summary.txt data/model/images
+    deps:
+    - path: data/model/WikiLarge_Train.csv
+      md5: cfd2316ec1657d01452a26d239e16249
+      size: 51285176
+    - path: data/model/vectorized_train.csv
+      md5: e250e40fb2aa45009909ec59fb747a27
+      size: 135441783
+    - path: src/explore_model_data.py
+      md5: 94c02094e91365f37588b871f06117bc
+      size: 1518
+    outs:
+    - path: data/model/data_summary.txt
+      md5: 6edebf64679ed663b95320ebb722d4d2
+      size: 122
