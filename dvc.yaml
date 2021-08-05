@@ -1,3 +1,17 @@
 stages:
-  explore1:
-    cmd: python src/explore_model_data.py data
+  vectorize_train_data:
+    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/model/vectorized_train.csv data/model/tfidf.pkl
+    deps:
+      - src/vectorize_model_train_data.py
+      - data/model/WikiLarge_Train.csv
+    outs:
+      - data/model/vectorized_train.csv
+      - data/model/tfidf.pkl
+  vectorize_test_data:
+    cmd: python src/vectorize_model_test_data.py data/model/WikiLarge_Test.csv data/model/tfidf.pkl data/model/vectorized_test.csv
+    deps:
+      - src/vectorize_model_test_data.py
+      - data/model/tfidf.pkl
+      - data/model/WikiLarge_Test.csv
+    outs:
+      - data/model/vectorized_test.csv
