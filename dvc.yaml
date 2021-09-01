@@ -1,17 +1,31 @@
 stages:
   vectorize_train_data:
-    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/model/vectorized_train.csv data/model/tfidf.pkl
+    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl data/model/tfidf_lemma.pkl data/model/lemmatizer.pkl
     deps:
       - src/vectorize_model_train_data.py
       - data/model/WikiLarge_Train.csv
+      - data/reference/AoA_51715_words.csv
+      - data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
+      - data/reference/dale_chall.txt
     outs:
-      - data/model/vectorized_train.csv
-      - data/model/tfidf.pkl
-  vectorize_test_data:
-    cmd: python src/vectorize_model_test_data.py data/model/WikiLarge_Test.csv data/model/tfidf.pkl data/model/vectorized_test.csv
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/tfidf_lemma.pkl
+      - data/model/labels_lemma.pkl
+      - data/model/lemmatizer.pkl
+  generate_baseline:
+    cmd: python src/basic_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/baseline/baseline_model.pkl models/baseline/baseline_metrics.txt
     deps:
-      - src/vectorize_model_test_data.py
-      - data/model/tfidf.pkl
-      - data/model/WikiLarge_Test.csv
+      - src/basic_log_reg.py
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/labels_lemma.pkl
     outs:
-      - data/model/vectorized_test.csv
+      - models/baseline/baseline_model.pkl
+      - models/baseline/baseline_metrics.txt
+# [NOT NEEDED FOR NOW - TAKES SOME TIME]  vectorize_test_data:
+#    cmd: python src/vectorize_model_test_data.py data/model/WikiLarge_Test.csv data/model/tfidf.pkl data/model/vectorized_test.pkl
+#    deps:
+#      - src/vectorize_model_test_data.py
+#      - data/model/tfidf.pkl
+#      - data/model/WikiLarge_Test.csv
+#    outs:
+#      - data/model/vectorized_test.pkl
