@@ -21,6 +21,15 @@ stages:
     outs:
       - models/baseline/baseline_model.pkl
       - models/baseline/baseline_metrics.txt
+  generate_logreg_model:
+    cmd: python src/model_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/logreg_model.pkl models/supervised/logreg_metrics.txt
+    deps:
+      - src/model_log_reg.py
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/labels_lemma.pkl
+    outs:
+      - models/supervised/logreg_model.pkl
+      - models/supervised/logreg_metrics.txt
 # [NOT NEEDED FOR NOW - TAKES SOME TIME]  vectorize_test_data:
 #    cmd: python src/vectorize_model_test_data.py data/model/WikiLarge_Test.csv data/model/tfidf.pkl data/model/vectorized_test.pkl
 #    deps:

@@ -9,8 +9,8 @@ RANDOM_SEED = 1337
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).iloc[:10000]
-    y = pd.read_pickle(labels).iloc[:10000]
+    X = pd.read_pickle(vectorized_train)
+    y = pd.read_pickle(labels)
     print(X.shape,y.shape)
     # print(X.head())
     # print(y.head())

@@ -44,7 +44,7 @@ def get_age_of_acquisition_stats(list_of_words, aoa):
 
 
 def get_count_of_uncommon_words(list_of_words, common_words):
-    # return a sum of the counts of words in list of words that occur in common words (dale_chall.txt)
+    # return a sum of the counts of words in list of words that don't occur in common words (dale_chall.txt)
     word_count = 0
     for word in list_of_words:
         if word not in common_words:
