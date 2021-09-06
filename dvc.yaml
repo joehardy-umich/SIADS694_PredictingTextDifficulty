@@ -1,6 +1,6 @@
 stages:
   vectorize_train_data:
-    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl data/model/tfidf_lemma.pkl data/model/lemmatizer.pkl
+    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl data/model/tfidf_lemma.pkl data/model/lemmatizer.pkl data/model/tokenized.pkl
     deps:
       - src/vectorize_model_train_data.py
       - data/model/WikiLarge_Train.csv
@@ -12,6 +12,7 @@ stages:
       - data/model/tfidf_lemma.pkl
       - data/model/labels_lemma.pkl
       - data/model/lemmatizer.pkl
+      - data/model/tokenized.pkl
   generate_baseline:
     cmd: python src/basic_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/baseline/baseline_model.pkl models/baseline/baseline_metrics.json
     deps:
