@@ -128,3 +128,60 @@ stages:
     - path: models/supervised/logreg_model.pkl
       md5: 90e0bead5d8d62db4564e69a94dbdbe4
       size: 80875
+  generate_logreg_model_only_scores:
+    cmd: python src/model_log_reg_only_scores.py data/model/vectorized_train_lemma.pkl
+      data/model/labels_lemma.pkl models/supervised/logreg_model_only_scores.pkl models/supervised/logreg_metrics_only_scores.json
+    deps:
+    - path: data/model/labels_lemma.pkl
+      md5: 746a45b70b78d75482125e71d9f1c616
+      size: 10003082
+    - path: data/model/vectorized_train_lemma.pkl
+      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
+      size: 64015191
+    - path: src/model_log_reg.py
+      md5: 0d1bc4cd9f034b43ce3a37fa466a6a7d
+      size: 3628
+    outs:
+    - path: models/supervised/logreg_metrics_only_scores.json
+      md5: 4d0eac9d899baa2c1f78f3ce66541b84
+      size: 124
+    - path: models/supervised/logreg_model_only_scores.pkl
+      md5: 6da05e237738368ed33544e3029c8fae
+      size: 871
+  generate_rf_model_only_scores:
+    cmd: python src/model_rf_only_scores.py data/model/vectorized_train_lemma.pkl
+      data/model/labels_lemma.pkl models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
+    deps:
+    - path: data/model/labels_lemma.pkl
+      md5: 746a45b70b78d75482125e71d9f1c616
+      size: 10003082
+    - path: data/model/vectorized_train_lemma.pkl
+      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
+      size: 64015191
+    - path: src/model_rf_only_scores.py
+      md5: 6702816cbec8de44a11bc7b096f157f8
+      size: 3900
+    outs:
+    - path: models/supervised/rf_metrics_only_scores.json
+      md5: 6a7e9f2375b58f9c1847f2ab4774f7a2
+      size: 125
+    - path: models/supervised/rf_model_only_scores.pkl
+      md5: a010b8c61e4ca78383ddbce91c722c03
+      size: 124101620
+  generate_dummies:
+    cmd: python src/dummies.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+      models/baseline/dummy_metrics.json
+    deps:
+    - path: data/model/labels_lemma.pkl
+      md5: 746a45b70b78d75482125e71d9f1c616
+      size: 10003082
+    - path: data/model/vectorized_train_lemma.pkl
+      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
+      size: 64015191
+    - path: src/basic_log_reg.py
+      md5: 1b2d7e14c6ced7ae18c2190bd2484224
+      size: 3648
+    outs:
+    - path: models/baseline/dummy_metrics.json
+      md5: e4aaae3c32c3f72053673aa918cb6529
+      size: 499

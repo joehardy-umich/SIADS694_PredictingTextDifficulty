@@ -1,4 +1,3 @@
-
 import reference_file_helpers as ref_helpers
 
 RANDOM_SEED = 1337
@@ -48,6 +47,10 @@ def get_lemma_stops():
     return lemma_stops
 
 
+def get_stops():
+    return set(stopwords.words('english'))
+
+
 def vectorize_lemmatize(original_df):
     df = pd.read_csv(
         original_df
@@ -57,7 +60,7 @@ def vectorize_lemmatize(original_df):
     lt = LemmaTokenizer()
     # word needs to show up at least 50 times across the corpus and should not be in more than half the docs
     # tfidf = TfidfVectorizer(stop_words=lemma_stops, tokenizer=lt, min_df=50, max_df=0.5, max_features=10000)  # 55,000
-    tfidf = TfidfVectorizer(stop_words=lemma_stops, tokenizer=lt, min_df=10,
+    tfidf = TfidfVectorizer(stop_words=get_lemma_stops(), tokenizer=lt, min_df=10,
                             max_df=0.5 if samples >= 10000 else 1.,
                             max_features=10000)
 
@@ -182,13 +185,15 @@ def do():
         'trained_tfidf_output_file', help='file to contain vectorized training data tfidf transformer')
     parser.add_argument(
         'lemmatizer_output_file', help='file to contain lemma tokenizer')
+    parser.add_argument(
+        'tokenized_sentences_output_file', help='file to contain non-lemmatized tokenized sentences')
     args = parser.parse_args()
 
     # vectorized, labels, tfidf, lemmatizer = vectorize_lemmatize(args.training_data_file, args.aoa_data_file,
     #                                                             args.common_words_data_file,
     #                                                             args.concreteness_data_file)
     df, tokenized_sentences, lemmatizer, tfidf = vectorize_lemmatize(args.training_data_file)
-
+    pickle.dump(tokenized_sentences, open(args.tokenized_sentences_output_file, 'wb'))
     aoa = ref_helpers.get_aoa_dataset(args.aoa_data_file)  # r"../data/reference/AoA_51715_words.csv")
     common_words = ref_helpers.get_common_words_dataset(
         args.common_words_data_file)  # r"../data/reference/dale_chall.txt")
@@ -200,7 +205,7 @@ def do():
     sg = ScoreGetter(aoa, common_words, concreteness)
     # f = lambda s: get_scores(s, aoa, common_words, concreteness)
     # scores = process_map(sg.get_scores,range(len(df)),chunksize=1)
-    scores = list(tqdm(pool.imap(sg.get_scores, tokenized_sentences,chunksize=128), total=df.shape[0]))
+    scores = list(tqdm(pool.imap(sg.get_scores, tokenized_sentences, chunksize=128), total=df.shape[0]))
     pool.close()
     pool.join()
     print(tokenized_sentences[0], scores[0])
@@ -242,4 +247,5 @@ if __name__ == '__main__':
     from multiprocessing import Pool
     from tqdm.contrib.concurrent import process_map
     import os
+
     do()
