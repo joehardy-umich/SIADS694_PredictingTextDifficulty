@@ -13,6 +13,14 @@ stages:
       - data/model/labels_lemma.pkl
       - data/model/lemmatizer.pkl
       - data/model/tokenized.pkl
+  generate_dummies:
+    cmd: python src/dummies.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/baseline/dummy_metrics.json
+    deps:
+      - src/basic_log_reg.py
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/labels_lemma.pkl
+    metrics:
+      - models/baseline/dummy_metrics.json
   generate_baseline:
     cmd: python src/basic_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/baseline/baseline_model.pkl models/baseline/baseline_metrics.json
     deps:
@@ -33,6 +41,26 @@ stages:
       - models/supervised/logreg_model.pkl
     metrics:
       - models/supervised/logreg_metrics.json
+#  generate_logreg_model_only_scores:
+#    cmd: python src/model_log_reg_only_scores.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/logreg_model_only_scores.pkl models/supervised/logreg_metrics_only_scores.json
+#    deps:
+#      - src/model_log_reg_only_scores.py
+#      - data/model/vectorized_train_lemma.pkl
+#      - data/model/labels_lemma.pkl
+#    outs:
+#      - models/supervised/logreg_model_only_scores.pkl
+#    metrics:
+#      - models/supervised/logreg_metrics_only_scores.json
+  generate_rf_model_only_scores:
+    cmd: python src/model_rf_only_scores.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
+    deps:
+      - src/model_rf_only_scores.py
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/labels_lemma.pkl
+    outs:
+      - models/supervised/rf_model_only_scores.pkl
+    metrics:
+      - models/supervised/rf_metrics_only_scores.json
 # [NOT NEEDED FOR NOW - TAKES SOME TIME]  vectorize_test_data:
 #    cmd: python src/vectorize_model_test_data.py data/model/WikiLarge_Test.csv data/model/tfidf.pkl data/model/vectorized_test.pkl
 #    deps:
