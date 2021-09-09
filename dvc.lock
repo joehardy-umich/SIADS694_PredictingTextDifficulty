@@ -185,3 +185,43 @@ stages:
     - path: models/baseline/dummy_metrics.json
       md5: e4aaae3c32c3f72053673aa918cb6529
       size: 499
+  generate_sgd_model:
+    cmd: python src/model_sgd.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+      models/supervised/sgd_model.pkl models/supervised/sgd_metrics.json
+    deps:
+    - path: data/model/labels_lemma.pkl
+      md5: 746a45b70b78d75482125e71d9f1c616
+      size: 10003082
+    - path: data/model/vectorized_train_lemma.pkl
+      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
+      size: 64015191
+    - path: src/model_sgd.py
+      md5: fcb759ba970b943875963b9e2123d349
+      size: 3476
+    outs:
+    - path: models/supervised/sgd_metrics.json
+      md5: b3695bf51e3384244a8e1e2f1e05fcc7
+      size: 91
+    - path: models/supervised/sgd_model.pkl
+      md5: e500334dca97623c5edfd10f24fcc5b7
+      size: 81148
+  generate_nn_model:
+    cmd: python src/model_nn.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+      models/supervised/nn_model.pkl models/supervised/nn_metrics.json
+    deps:
+    - path: data/model/labels_lemma.pkl
+      md5: 746a45b70b78d75482125e71d9f1c616
+      size: 10003082
+    - path: data/model/vectorized_train_lemma.pkl
+      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
+      size: 64015191
+    - path: src/model_nn.py
+      md5: e84cc655aafa045839938313dafa6e68
+      size: 3611
+    outs:
+    - path: models/supervised/nn_metrics.json
+      md5: 458730becb23e7a2cc2420d8314a94e0
+      size: 94
+    - path: models/supervised/nn_model.pkl
+      md5: 1566732db2de1c749f664cb21bc9efd0
+      size: 4764
