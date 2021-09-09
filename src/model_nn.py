@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import SGDClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
 import pickle
@@ -12,7 +12,7 @@ RANDOM_SEED = 1337
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train)
+    X = pd.read_pickle(vectorized_train).iloc[:, -5:]
     y = pd.read_pickle(labels)
     print(X.shape, y.shape)
     # print(X.head())
@@ -24,7 +24,8 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = SGDClassifier(random_state=RANDOM_SEED, verbose=1, max_iter=5000)
+    clf = MLPClassifier(random_state=RANDOM_SEED, verbose=1, solver='lbfgs', activation='relu', learning_rate='adaptive',
+                        hidden_layer_sizes=(4,3),max_iter=1000,early_stopping=True)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 
@@ -37,7 +38,7 @@ def metrics(clf, X_dev, y_dev):
     conf_mat = confusion_matrix(y_dev, y_pred)
     f1 = f1_score(y_dev, y_pred)
     accuracy = accuracy_score(y_dev, y_pred)
-    return conf_mat,  f1, accuracy
+    return conf_mat, f1, accuracy
 
 
 if __name__ == '__main__':
@@ -49,21 +50,21 @@ if __name__ == '__main__':
     parser.add_argument(
         'labels', help='file containing labels')
     parser.add_argument(
-        'sgd_model_output_file', help='file to contain trained sgd model')
+        'nn_model_output_file', help='file to contain trained nn model')
     parser.add_argument(
-        'sgd_metrics_file', help='file to contain trained sgd model metrics on WikiTrain.csv')
+        'nn_metrics_file', help='file to contain trained nn model metrics on WikiTrain.csv')
     args = parser.parse_args()
-    print("SGD: Splitting data...")
+    print("nn: Splitting data...")
     X_train, y_train, X_dev, y_dev = split(args.vectorized_training_data_file, args.labels)
-    print("SGD: Training model...")
+    print("nn: Training model...")
     clf, time_to_train = train(X_train, y_train)
-    print("SGD: Getting metrics...")
+    print("nn: Getting metrics...")
     conf_mat, f1, accuracy = metrics(clf, X_dev, y_dev)
 
-    print("SGD: Writing results...")
-    pickle.dump(clf, open(args.sgd_model_output_file, 'wb'))
+    print("nn: Writing results...")
+    pickle.dump(clf, open(args.nn_model_output_file, 'wb'))
     metrics_dict = {'accuracy': accuracy, 'f1': f1, 'time_to_train': time_to_train}
-    with open(args.sgd_metrics_file, 'w') as metrics_file:
+    with open(args.nn_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
     # with open(args.logreg_metrics_file, 'w') as metrics_file:
     #     metrics_file.write('\n'.join([

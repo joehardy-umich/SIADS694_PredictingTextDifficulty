@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
 import pickle
@@ -24,7 +24,7 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = LogisticRegression(random_state=RANDOM_SEED, solver='lbfgs', verbose=1)
+    clf = SGDClassifier(random_state=RANDOM_SEED, verbose=1, max_iter=5000)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 
@@ -35,10 +35,9 @@ def metrics(clf, X_dev, y_dev):
     y_pred = clf.predict(X_dev)
 
     conf_mat = confusion_matrix(y_dev, y_pred)
-    roc_auc = roc_auc_score(y_dev, clf.predict_proba(X_dev)[:, 1])
     f1 = f1_score(y_dev, y_pred)
     accuracy = accuracy_score(y_dev, y_pred)
-    return conf_mat, roc_auc, f1, accuracy
+    return conf_mat,  f1, accuracy
 
 
 if __name__ == '__main__':
@@ -50,21 +49,21 @@ if __name__ == '__main__':
     parser.add_argument(
         'labels', help='file containing labels')
     parser.add_argument(
-        'logreg_model_output_file', help='file to contain trained log reg model')
+        'sgd_model_output_file', help='file to contain trained sgd model')
     parser.add_argument(
-        'logreg_metrics_file', help='file to contain trained log reg model metrics on WikiTrain.csv')
+        'sgd_metrics_file', help='file to contain trained sgd model metrics on WikiTrain.csv')
     args = parser.parse_args()
-    print("Log Reg: Splitting data...")
+    print("SGD: Splitting data...")
     X_train, y_train, X_dev, y_dev = split(args.vectorized_training_data_file, args.labels)
-    print("Log Reg: Training model...")
+    print("SGD: Training model...")
     clf, time_to_train = train(X_train, y_train)
-    print("Log Reg: Getting metrics...")
-    conf_mat, roc_auc, f1, accuracy = metrics(clf, X_dev, y_dev)
+    print("SGD: Getting metrics...")
+    conf_mat, f1, accuracy = metrics(clf, X_dev, y_dev)
 
-    print("Log Reg: Writing results...")
-    pickle.dump(clf, open(args.logreg_model_output_file, 'wb'))
-    metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
-    with open(args.logreg_metrics_file, 'w') as metrics_file:
+    print("SGD: Writing results...")
+    pickle.dump(clf, open(args.sgd_model_output_file, 'wb'))
+    metrics_dict = {'accuracy': accuracy, 'f1': f1, 'time_to_train': time_to_train}
+    with open(args.sgd_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
     # with open(args.logreg_metrics_file, 'w') as metrics_file:
     #     metrics_file.write('\n'.join([
