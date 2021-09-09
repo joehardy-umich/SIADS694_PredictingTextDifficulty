@@ -51,6 +51,26 @@ stages:
 #      - models/supervised/logreg_model_only_scores.pkl
 #    metrics:
 #      - models/supervised/logreg_metrics_only_scores.json
+  generate_sgd_model:
+    cmd: python src/model_sgd.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/sgd_model.pkl models/supervised/sgd_metrics.json
+    deps:
+      - src/model_sgd.py
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/labels_lemma.pkl
+    outs:
+      - models/supervised/sgd_model.pkl
+    metrics:
+      - models/supervised/sgd_metrics.json
+  generate_nn_model:
+    cmd: python src/model_nn.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/nn_model.pkl models/supervised/nn_metrics.json
+    deps:
+      - src/model_nn.py
+      - data/model/vectorized_train_lemma.pkl
+      - data/model/labels_lemma.pkl
+    outs:
+      - models/supervised/nn_model.pkl
+    metrics:
+      - models/supervised/nn_metrics.json
   generate_rf_model_only_scores:
     cmd: python src/model_rf_only_scores.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
     deps:
