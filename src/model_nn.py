@@ -12,7 +12,8 @@ RANDOM_SEED = 1337
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).iloc[:, -5:]
+    X = pd.read_pickle(vectorized_train)
+    X[pd.isnull(X)] = 0.
     y = pd.read_pickle(labels)
     print(X.shape, y.shape)
     # print(X.head())
@@ -24,8 +25,9 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = MLPClassifier(random_state=RANDOM_SEED, verbose=1, solver='lbfgs', activation='relu', learning_rate='adaptive',
-                        hidden_layer_sizes=(4,3),max_iter=1000,early_stopping=True)
+    clf = MLPClassifier(random_state=RANDOM_SEED, verbose=1, solver='adam',
+                        # activation='relu', learning_rate='adaptive',
+                        hidden_layer_sizes=(200, 150, 50), max_iter=5000)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 

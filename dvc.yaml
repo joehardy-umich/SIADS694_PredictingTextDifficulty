@@ -1,82 +1,133 @@
 stages:
-  vectorize_train_data:
-    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl data/model/tfidf_lemma.pkl data/model/lemmatizer.pkl data/model/tokenized.pkl
+#  hash_train_data:
+#    cmd: python src/hash_vectorize_model_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train_hash.pkl data/model/labels_hash.pkl data/model/hash.pkl
+#    deps:
+#      - src/hash_vectorize_model_data.py
+#      - data/model/WikiLarge_Train.csv
+#      - data/reference/AoA_51715_words.csv
+#      - data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
+#      - data/reference/dale_chall.txt
+#    outs:
+#      - data/model/vectorized_train_hash.pkl
+#      - data/model/hash.pkl
+#      - data/model/labels_hash.pkl
+#  vectorize_train_data:
+#    cmd: python src/vectorize_model_train_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train_hash.pkl data/model/labels_hash.pkl data/model/tfidf_hash.pkl data/model/hashtizer.pkl data/model/tokenized.pkl
+#    deps:
+#      - src/vectorize_model_train_data.py
+#      - data/model/WikiLarge_Train.csv
+#      - data/reference/AoA_51715_words.csv
+#      - data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
+#      - data/reference/dale_chall.txt
+#    outs:
+#      - data/model/vectorized_train_hash.pkl
+#      - data/model/tfidf_hash.pkl
+#      - data/model/labels_hash.pkl
+#      - data/model/hashtizer.pkl
+#      - data/model/tokenized.pkl
+  select_train_data:
+    cmd: python src/data_transform_with_eda_output.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt data/model/vectorized_train.pkl data/model/labels.pkl data/model/tagged_sentences.pkl
     deps:
-      - src/vectorize_model_train_data.py
+      - src/data_transform_with_eda_output.py
       - data/model/WikiLarge_Train.csv
       - data/reference/AoA_51715_words.csv
       - data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
       - data/reference/dale_chall.txt
     outs:
+      - data/model/vectorized_train.pkl
+      - data/model/labels.pkl
+      - data/model/tagged_sentences.pkl
+  make_full_train_data:
+    cmd: python src/combine_eda_and_vector_data.py data/model/vectorized_train.pkl data/model/vectorized_train_lemma.pkl data/model/vectorized_combined.pkl
+    deps:
+      - data/model/vectorized_train.pkl
       - data/model/vectorized_train_lemma.pkl
-      - data/model/tfidf_lemma.pkl
-      - data/model/labels_lemma.pkl
-      - data/model/lemmatizer.pkl
-      - data/model/tokenized.pkl
+    outs:
+      - data/model/vectorized_combined.pkl
   generate_dummies:
-    cmd: python src/dummies.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/baseline/dummy_metrics.json
+    cmd: python src/dummies.py data/model/vectorized_combined.pkl data/model/labels.pkl models/baseline/dummy_metrics.json
     deps:
       - src/basic_log_reg.py
-      - data/model/vectorized_train_lemma.pkl
-      - data/model/labels_lemma.pkl
+      - data/model/vectorized_combined.pkl
+      - data/model/labels.pkl
     metrics:
       - models/baseline/dummy_metrics.json
   generate_baseline:
-    cmd: python src/basic_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/baseline/baseline_model.pkl models/baseline/baseline_metrics.json
+    cmd: python src/basic_log_reg.py data/model/vectorized_combined.pkl data/model/labels.pkl models/baseline/baseline_model.pkl models/baseline/baseline_metrics.json
     deps:
       - src/basic_log_reg.py
-      - data/model/vectorized_train_lemma.pkl
-      - data/model/labels_lemma.pkl
+      - data/model/vectorized_combined.pkl
+      - data/model/labels.pkl
     outs:
       - models/baseline/baseline_model.pkl
     metrics:
       - models/baseline/baseline_metrics.json
+#  generate_naive_bayes_model:
+#    cmd: python src/model_naive_bayes.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/nb_model.pkl models/supervised/nb_metrics.json
+#    deps:
+#      - src/model_naive_bayes.py
+#      - data/model/vectorized_combined.pkl
+#      - data/model/labels.pkl
+#    outs:
+#      - models/supervised/nb_model.pkl
+#    metrics:
+#      - models/supervised/nb_metrics.json
   generate_logreg_model:
-    cmd: python src/model_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/logreg_model.pkl models/supervised/logreg_metrics.json
+    cmd: python src/model_log_reg.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/logreg_model.pkl models/supervised/logreg_metrics.json
     deps:
       - src/model_log_reg.py
-      - data/model/vectorized_train_lemma.pkl
-      - data/model/labels_lemma.pkl
+      - data/model/vectorized_combined.pkl
+      - data/model/labels.pkl
     outs:
       - models/supervised/logreg_model.pkl
     metrics:
       - models/supervised/logreg_metrics.json
 #  generate_logreg_model_only_scores:
-#    cmd: python src/model_log_reg_only_scores.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/logreg_model_only_scores.pkl models/supervised/logreg_metrics_only_scores.json
+#    cmd: python src/model_log_reg_only_scores.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/logreg_model_only_scores.pkl models/supervised/logreg_metrics_only_scores.json
 #    deps:
 #      - src/model_log_reg_only_scores.py
-#      - data/model/vectorized_train_lemma.pkl
-#      - data/model/labels_lemma.pkl
+#      - data/model/vectorized_combined.pkl
+#      - data/model/labels.pkl
 #    outs:
 #      - models/supervised/logreg_model_only_scores.pkl
 #    metrics:
 #      - models/supervised/logreg_metrics_only_scores.json
-  generate_sgd_model:
-    cmd: python src/model_sgd.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/sgd_model.pkl models/supervised/sgd_metrics.json
+#  generate_sgd_model:
+#    cmd: python src/model_sgd.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/sgd_model.pkl models/supervised/sgd_metrics.json
+#    deps:
+#      - src/model_sgd.py
+#      - data/model/vectorized_combined.pkl
+#      - data/model/labels.pkl
+#    outs:
+#      - models/supervised/sgd_model.pkl
+#    metrics:
+#      - models/supervised/sgd_metrics.json
+#  generate_nn_model:
+#    cmd: python src/model_nn.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/nn_model.pkl models/supervised/nn_metrics.json
+#    deps:
+#      - src/model_nn.py
+#      - data/model/vectorized_combined.pkl
+#      - data/model/labels.pkl
+#    outs:
+#      - models/supervised/nn_model.pkl
+#    metrics:
+#      - models/supervised/nn_metrics.json
+  generate_rf_model:
+    cmd: python src/model_rf.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/rf_model.pkl models/supervised/rf_metrics.json
     deps:
-      - src/model_sgd.py
-      - data/model/vectorized_train_lemma.pkl
-      - data/model/labels_lemma.pkl
+      - src/model_rf.py
+      - data/model/vectorized_combined.pkl
+      - data/model/labels.pkl
     outs:
-      - models/supervised/sgd_model.pkl
+      - models/supervised/rf_model.pkl
     metrics:
-      - models/supervised/sgd_metrics.json
-  generate_nn_model:
-    cmd: python src/model_nn.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/nn_model.pkl models/supervised/nn_metrics.json
-    deps:
-      - src/model_nn.py
-      - data/model/vectorized_train_lemma.pkl
-      - data/model/labels_lemma.pkl
-    outs:
-      - models/supervised/nn_model.pkl
-    metrics:
-      - models/supervised/nn_metrics.json
+      - models/supervised/rf_metrics.json
   generate_rf_model_only_scores:
-    cmd: python src/model_rf_only_scores.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
+    cmd: python src/model_rf_only_scores.py data/model/vectorized_combined.pkl data/model/labels.pkl models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
     deps:
       - src/model_rf_only_scores.py
-      - data/model/vectorized_train_lemma.pkl
-      - data/model/labels_lemma.pkl
+      - data/model/vectorized_combined.pkl
+      - data/model/labels.pkl
     outs:
       - models/supervised/rf_model_only_scores.pkl
     metrics:

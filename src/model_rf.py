@@ -2,21 +2,27 @@ import json
 
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import SGDClassifier
+# from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import pickle
 import time
+import numpy as np
 
 RANDOM_SEED = 1337
 
 
+# def create_score_interactions()
+
 def split(vectorized_train, labels):
     X = pd.read_pickle(vectorized_train)
-    X[pd.isnull(X)] = 0.
+    # X[pd.isnull(X)] = 0.
     y = pd.read_pickle(labels)
-    print(X.shape, y.shape)
+    # p = PCA(n_components=20)
+    # X = p.fit_transform(X)
     # print(X.head())
     # print(y.head())
     X_train, X_dev, y_train, y_dev = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
@@ -24,12 +30,13 @@ def split(vectorized_train, labels):
     return X_train, y_train, X_dev, y_dev
 
 
+# feature_importances =
+
 def train(X_train, y_train):
     t0 = time.time()
-    clf = SGDClassifier(random_state=RANDOM_SEED, verbose=1, max_iter=5000, n_iter_no_change=1000, tol=1e-5, loss='log')
+    clf = RandomForestClassifier(random_state=RANDOM_SEED, verbose=1, n_jobs=-1)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
-
     return clf, time_to_train
 
 
@@ -37,9 +44,11 @@ def metrics(clf, X_dev, y_dev):
     y_pred = clf.predict(X_dev)
 
     conf_mat = confusion_matrix(y_dev, y_pred)
+    roc_auc = roc_auc_score(y_dev, clf.predict_proba(X_dev)[:, 1])
     f1 = f1_score(y_dev, y_pred)
     accuracy = accuracy_score(y_dev, y_pred)
-    return conf_mat, f1, accuracy
+    print(clf.feature_importances_)
+    return conf_mat, roc_auc, f1, accuracy
 
 
 if __name__ == '__main__':
@@ -51,21 +60,21 @@ if __name__ == '__main__':
     parser.add_argument(
         'labels', help='file containing labels')
     parser.add_argument(
-        'sgd_model_output_file', help='file to contain trained sgd model')
+        'rf_model_output_file', help='file to contain trained log reg model')
     parser.add_argument(
-        'sgd_metrics_file', help='file to contain trained sgd model metrics on WikiTrain.csv')
+        'rf_metrics_file', help='file to contain trained log reg model metrics on WikiTrain.csv')
     args = parser.parse_args()
-    print("SGD: Splitting data...")
+    print("Random Forest: Splitting data...")
     X_train, y_train, X_dev, y_dev = split(args.vectorized_training_data_file, args.labels)
-    print("SGD: Training model...")
+    print("Random Forest: Training model...")
     clf, time_to_train = train(X_train, y_train)
-    print("SGD: Getting metrics...")
-    conf_mat, f1, accuracy = metrics(clf, X_dev, y_dev)
+    print("Random Forest: Getting metrics...")
+    conf_mat, roc_auc, f1, accuracy = metrics(clf, X_dev, y_dev)
 
-    print("SGD: Writing results...")
-    pickle.dump(clf, open(args.sgd_model_output_file, 'wb'))
-    metrics_dict = {'accuracy': accuracy, 'f1': f1, 'time_to_train': time_to_train}
-    with open(args.sgd_metrics_file, 'w') as metrics_file:
+    print("Random Forest: Writing results...")
+    pickle.dump(clf, open(args.rf_model_output_file, 'wb'))
+    metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
+    with open(args.rf_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
     # with open(args.logreg_metrics_file, 'w') as metrics_file:
     #     metrics_file.write('\n'.join([

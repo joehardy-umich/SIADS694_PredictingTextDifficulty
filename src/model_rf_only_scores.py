@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-#from sklearn.linear_model import LogisticRegression
+# from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
@@ -13,10 +13,28 @@ import numpy as np
 
 RANDOM_SEED = 1337
 
-#def create_score_interactions()
+# def create_score_interactions()
+limit_to = [
+    'mean_age',
+    'median_age',
+    'max_age',
+    'mean_perc_known_lem',
+    'median_perc_known_lem',
+    'mean_freq_pm',
+    'median_freq_pm',
+    'count_uncommon',
+    'perc_uncommon',
+    'mean_concreteness',
+    'min_concreteness',
+    'mean_perc_known',
+    'min_perc_known'
+]
+
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).iloc[:,-5:]
+    X = pd.read_pickle(vectorized_train).loc[:, limit_to]
+    ss = StandardScaler()
+    X = ss.fit_transform(X)
     y = pd.read_pickle(labels)
     print(X.shape, y.shape)
     # print(X.head())
@@ -28,7 +46,7 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = RandomForestClassifier(random_state=RANDOM_SEED, verbose=1,max_depth=16)
+    clf = RandomForestClassifier(random_state=RANDOM_SEED, verbose=1, max_depth=16)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 

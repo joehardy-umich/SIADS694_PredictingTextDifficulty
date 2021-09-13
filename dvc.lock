@@ -89,45 +89,45 @@ stages:
       md5: fd22f2485bd11496ca9ebe920ed2b889
       size: 38310683
   generate_baseline:
-    cmd: python src/basic_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+    cmd: python src/basic_log_reg.py data/model/vectorized_combined.pkl data/model/labels.pkl
       models/baseline/baseline_model.pkl models/baseline/baseline_metrics.json
     deps:
-    - path: data/model/labels_lemma.pkl
-      md5: 746a45b70b78d75482125e71d9f1c616
-      size: 10003082
-    - path: data/model/vectorized_train_lemma.pkl
-      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
-      size: 64015191
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_combined.pkl
+      md5: 2f259f8ac21b003ed414eb70511437c2
+      size: 1499092020
     - path: src/basic_log_reg.py
-      md5: 1b2d7e14c6ced7ae18c2190bd2484224
-      size: 3648
+      md5: 6af6ddfbb2c9676311eee2d7f3f01a8b
+      size: 3842
     outs:
     - path: models/baseline/baseline_metrics.json
-      md5: 023be08c3cf6e60beabb8e1eecfb9a95
-      size: 111
+      md5: 45eb7f34fc2f1d2952f5ecac6f9a2805
+      size: 105
     - path: models/baseline/baseline_model.pkl
-      md5: 27822c19d042d4fcb40e520377e0cbab
-      size: 80875
+      md5: e3cfde2f81eabdae02b3a885d2afab47
+      size: 84315
   generate_logreg_model:
-    cmd: python src/model_log_reg.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+    cmd: python src/model_log_reg.py data/model/vectorized_combined.pkl data/model/labels.pkl
       models/supervised/logreg_model.pkl models/supervised/logreg_metrics.json
     deps:
-    - path: data/model/labels_lemma.pkl
-      md5: 746a45b70b78d75482125e71d9f1c616
-      size: 10003082
-    - path: data/model/vectorized_train_lemma.pkl
-      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
-      size: 64015191
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_combined.pkl
+      md5: 2f259f8ac21b003ed414eb70511437c2
+      size: 1499092020
     - path: src/model_log_reg.py
-      md5: 0d1bc4cd9f034b43ce3a37fa466a6a7d
-      size: 3628
+      md5: 3b33335f99788d06b1d8b4f061f4c41c
+      size: 3986
     outs:
     - path: models/supervised/logreg_metrics.json
-      md5: f50ada38b76b1bc0d38bc28ea7794493
-      size: 126
+      md5: 83d7bae5572df38c22bb4291b63e8994
+      size: 125
     - path: models/supervised/logreg_model.pkl
-      md5: 90e0bead5d8d62db4564e69a94dbdbe4
-      size: 80875
+      md5: 4842b934c58c641ae8d056961cbac34b
+      size: 84316
   generate_logreg_model_only_scores:
     cmd: python src/model_log_reg_only_scores.py data/model/vectorized_train_lemma.pkl
       data/model/labels_lemma.pkl models/supervised/logreg_model_only_scores.pkl models/supervised/logreg_metrics_only_scores.json
@@ -149,79 +149,194 @@ stages:
       md5: 6da05e237738368ed33544e3029c8fae
       size: 871
   generate_rf_model_only_scores:
-    cmd: python src/model_rf_only_scores.py data/model/vectorized_train_lemma.pkl
-      data/model/labels_lemma.pkl models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
+    cmd: python src/model_rf_only_scores.py data/model/vectorized_combined.pkl data/model/labels.pkl
+      models/supervised/rf_model_only_scores.pkl models/supervised/rf_metrics_only_scores.json
     deps:
-    - path: data/model/labels_lemma.pkl
-      md5: 746a45b70b78d75482125e71d9f1c616
-      size: 10003082
-    - path: data/model/vectorized_train_lemma.pkl
-      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
-      size: 64015191
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_combined.pkl
+      md5: 2f259f8ac21b003ed414eb70511437c2
+      size: 1499092020
     - path: src/model_rf_only_scores.py
-      md5: 6702816cbec8de44a11bc7b096f157f8
-      size: 3900
+      md5: b8a5deca43e914eb5d4b9e722214191e
+      size: 4279
     outs:
     - path: models/supervised/rf_metrics_only_scores.json
-      md5: 6a7e9f2375b58f9c1847f2ab4774f7a2
+      md5: cadae4b2f80273dfa533960c30783be9
       size: 125
     - path: models/supervised/rf_model_only_scores.pkl
-      md5: a010b8c61e4ca78383ddbce91c722c03
-      size: 124101620
+      md5: 1c791316abc2077ea5832dbad830d7ca
+      size: 53973044
   generate_dummies:
-    cmd: python src/dummies.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+    cmd: python src/dummies.py data/model/vectorized_combined.pkl data/model/labels.pkl
       models/baseline/dummy_metrics.json
     deps:
-    - path: data/model/labels_lemma.pkl
-      md5: 746a45b70b78d75482125e71d9f1c616
-      size: 10003082
-    - path: data/model/vectorized_train_lemma.pkl
-      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
-      size: 64015191
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_combined.pkl
+      md5: 2f259f8ac21b003ed414eb70511437c2
+      size: 1499092020
     - path: src/basic_log_reg.py
-      md5: 1b2d7e14c6ced7ae18c2190bd2484224
-      size: 3648
+      md5: 6af6ddfbb2c9676311eee2d7f3f01a8b
+      size: 3842
     outs:
     - path: models/baseline/dummy_metrics.json
-      md5: e4aaae3c32c3f72053673aa918cb6529
-      size: 499
+      md5: 333fd809efdbd5c333e5af2bac682dee
+      size: 527
   generate_sgd_model:
-    cmd: python src/model_sgd.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+    cmd: python src/model_sgd.py data/model/vectorized_train.pkl data/model/labels.pkl
       models/supervised/sgd_model.pkl models/supervised/sgd_metrics.json
     deps:
-    - path: data/model/labels_lemma.pkl
-      md5: 746a45b70b78d75482125e71d9f1c616
-      size: 10003082
-    - path: data/model/vectorized_train_lemma.pkl
-      md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
-      size: 64015191
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_train.pkl
+      md5: 6c47d9ecc014c45557e0d6dbb419e808
+      size: 1433692867
     - path: src/model_sgd.py
-      md5: fcb759ba970b943875963b9e2123d349
-      size: 3476
+      md5: 9366533fe957984f2c7a5d6a583d1c37
+      size: 3548
     outs:
     - path: models/supervised/sgd_metrics.json
-      md5: b3695bf51e3384244a8e1e2f1e05fcc7
-      size: 91
+      md5: 0f801779ed042715e7b202a3a9466ea6
+      size: 95
     - path: models/supervised/sgd_model.pkl
-      md5: e500334dca97623c5edfd10f24fcc5b7
-      size: 81148
+      md5: 2b5db816caba766a99bc79cbddadd44b
+      size: 4535
   generate_nn_model:
-    cmd: python src/model_nn.py data/model/vectorized_train_lemma.pkl data/model/labels_lemma.pkl
+    cmd: python src/model_nn.py data/model/vectorized_train.pkl data/model/labels.pkl
       models/supervised/nn_model.pkl models/supervised/nn_metrics.json
     deps:
-    - path: data/model/labels_lemma.pkl
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_train.pkl
+      md5: 6c47d9ecc014c45557e0d6dbb419e808
+      size: 1433692867
+    - path: src/model_nn.py
+      md5: 58962d41c9b6ad5c72fe31e89c52cceb
+      size: 3640
+    outs:
+    - path: models/supervised/nn_metrics.json
+      md5: e28daaac47d2d2ff28e043521a5a7155
+      size: 94
+    - path: models/supervised/nn_model.pkl
+      md5: 0933f22cd5595f4f0b2e8378cf0f1776
+      size: 2982808
+  hash_train_data:
+    cmd: python src/hash_vectorize_model_data.py data/model/WikiLarge_Train.csv data/reference/AoA_51715_words.csv
+      data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt data/reference/dale_chall.txt
+      data/model/vectorized_train_hash.pkl data/model/labels_hash.pkl data/model/hash.pkl
+    deps:
+    - path: data/model/WikiLarge_Train.csv
+      md5: cfd2316ec1657d01452a26d239e16249
+      size: 51285176
+    - path: data/reference/AoA_51715_words.csv
+      md5: 6bbd9887b9eeb5dadfea3d116f5c85b7
+      size: 3524646
+    - path: data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
+      md5: bff8048aeca51dc486766e31dca305db
+      size: 1606236
+    - path: data/reference/dale_chall.txt
+      md5: 455aa117616dab4762aeaac4e595b592
+      size: 18727
+    - path: src/hash_vectorize_model_data.py
+      md5: 1fad2c61941be35daab9f225965908b6
+      size: 9765
+    outs:
+    - path: data/model/hash.pkl
+      md5: 03094b24c8239ac94e736bbc717c295c
+      size: 2543
+    - path: data/model/labels_hash.pkl
       md5: 746a45b70b78d75482125e71d9f1c616
       size: 10003082
+    - path: data/model/vectorized_train_hash.pkl
+      md5: be5af4b290b87cb83d68f9ecd372d795
+      size: 79388172
+  generate_naive_bayes_model:
+    cmd: python src/model_naive_bayes.py data/model/vectorized_train.pkl data/model/labels.pkl
+      models/supervised/nb_model.pkl models/supervised/nb_metrics.json
+    deps:
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_train.pkl
+      md5: 6c47d9ecc014c45557e0d6dbb419e808
+      size: 1433692867
+    - path: src/model_naive_bayes.py
+      md5: d9b215e43e1e596626317c8085145d16
+      size: 3979
+    outs:
+    - path: models/supervised/nb_metrics.json
+      md5: e1a64e620b673181fca5d76870f38d7f
+      size: 124
+    - path: models/supervised/nb_model.pkl
+      md5: 6120189386d41140324b6f93d20478e8
+      size: 934086
+  select_train_data:
+    cmd: python src/data_transform_with_eda_output.py data/model/WikiLarge_Train.csv
+      data/reference/AoA_51715_words.csv data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
+      data/reference/dale_chall.txt data/model/vectorized_train.pkl data/model/labels.pkl
+      data/model/tagged_sentences.pkl
+    deps:
+    - path: data/model/WikiLarge_Train.csv
+      md5: cfd2316ec1657d01452a26d239e16249
+      size: 51285176
+    - path: data/reference/AoA_51715_words.csv
+      md5: 6bbd9887b9eeb5dadfea3d116f5c85b7
+      size: 3524646
+    - path: data/reference/Concreteness_ratings_Brysbaert_et_al_BRM.txt
+      md5: bff8048aeca51dc486766e31dca305db
+      size: 1606236
+    - path: data/reference/dale_chall.txt
+      md5: 455aa117616dab4762aeaac4e595b592
+      size: 18727
+    - path: src/data_transform_with_eda_output.py
+      md5: 7918cac6ca5a972cb27c58a6e7109de7
+      size: 7035
+    outs:
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/tagged_sentences.pkl
+      md5: fba3493858f6cfabb9427faf80149397
+      size: 204136281
+    - path: data/model/vectorized_train.pkl
+      md5: 6c47d9ecc014c45557e0d6dbb419e808
+      size: 1433692867
+  generate_rf_model:
+    cmd: python src/model_rf.py data/model/vectorized_combined.pkl data/model/labels.pkl
+      models/supervised/rf_model.pkl models/supervised/rf_metrics.json
+    deps:
+    - path: data/model/labels.pkl
+      md5: 15d3cdb570ea03742b64c1724de904a3
+      size: 3334739
+    - path: data/model/vectorized_combined.pkl
+      md5: 2f259f8ac21b003ed414eb70511437c2
+      size: 1499092020
+    - path: src/model_rf.py
+      md5: c3b8e7d4d7450245935f73bf14010d44
+      size: 3959
+    outs:
+    - path: models/supervised/rf_metrics.json
+      md5: 2a6dc2b643b069d1dedf3ed65457da36
+      size: 125
+    - path: models/supervised/rf_model.pkl
+      md5: 66c11f9d183b0e12a8490b5e42094cdb
+      size: 1561049332
+  make_full_train_data:
+    cmd: python src/combine_eda_and_vector_data.py data/model/vectorized_train.pkl
+      data/model/vectorized_train_lemma.pkl data/model/vectorized_combined.pkl
+    deps:
+    - path: data/model/vectorized_train.pkl
+      md5: 6c47d9ecc014c45557e0d6dbb419e808
+      size: 1433692867
     - path: data/model/vectorized_train_lemma.pkl
       md5: 5cbc323e15e3f8ac88f61f9e9ec31f07
       size: 64015191
-    - path: src/model_nn.py
-      md5: e84cc655aafa045839938313dafa6e68
-      size: 3611
     outs:
-    - path: models/supervised/nn_metrics.json
-      md5: 458730becb23e7a2cc2420d8314a94e0
-      size: 94
-    - path: models/supervised/nn_model.pkl
-      md5: 1566732db2de1c749f664cb21bc9efd0
-      size: 4764
+    - path: data/model/vectorized_combined.pkl
+      md5: 2f259f8ac21b003ed414eb70511437c2
+      size: 1499092020

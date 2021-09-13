@@ -1,22 +1,32 @@
 import json
 
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
 import pickle
 import time
+import numpy as np
 
 RANDOM_SEED = 1337
 
 
-def split(vectorized_train, labels):
+def split(vectorized_train, labels,subset=1000000):
+    print("Reading data...")
     X = pd.read_pickle(vectorized_train)
+    #X[pd.isnull(X)]=0.
     y = pd.read_pickle(labels)
+    # p = PCA(n_components=20)
+    # X=p.fit_transform(X)
+    # print("Subsetting data...")
+    # random_indices = np.random.choice(range(len(X)), subset, replace=False)
+    # X = X.iloc[random_indices]
+    # y = y.iloc[random_indices]
     print(X.shape, y.shape)
     # print(X.head())
     # print(y.head())
+    print("Performing split...")
     X_train, X_dev, y_train, y_dev = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
     print(X_train.shape, y_train.shape, X_dev.shape, y_dev.shape)
     return X_train, y_train, X_dev, y_dev
@@ -24,7 +34,7 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = LogisticRegression(random_state=RANDOM_SEED, solver='lbfgs', verbose=1)
+    clf = LogisticRegression(random_state=RANDOM_SEED, solver='lbfgs', verbose=1,max_iter=5000)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 

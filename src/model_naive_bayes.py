@@ -1,24 +1,35 @@
 import json
 
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import SGDClassifier
+from sklearn.naive_bayes import CategoricalNB as nb
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
-
+from sklearn.decomposition import PCA
 import pickle
 import time
+import numpy as np
 
 RANDOM_SEED = 1337
 
 
-def split(vectorized_train, labels):
+def split(vectorized_train, labels, subset=10000):
+    print("Reading data...")
     X = pd.read_pickle(vectorized_train)
     X[pd.isnull(X)] = 0.
+    X[X < 0] = 0.
     y = pd.read_pickle(labels)
-    print(X.shape, y.shape)
+    # p = PCA(n_components=20)
+    # X = p.fit_transform(X)
+    # print(labels)
+
+    # print("Subsetting data...")
+    # random_indices = np.random.choice(range(len(X)), subset, replace=False)
+    # X = X.iloc[random_indices]
+    # y = y.iloc[random_indices]
+    # print(X.shape, y.shape)
     # print(X.head())
     # print(y.head())
+    print("Performing split...")
     X_train, X_dev, y_train, y_dev = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
     print(X_train.shape, y_train.shape, X_dev.shape, y_dev.shape)
     return X_train, y_train, X_dev, y_dev
@@ -26,7 +37,7 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = SGDClassifier(random_state=RANDOM_SEED, verbose=1, max_iter=5000, n_iter_no_change=1000, tol=1e-5, loss='log')
+    clf = nb(class_prior=[0.5, 0.5])  # random_state=RANDOM_SEED, solver='lbfgs', verbose=1)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 
@@ -37,9 +48,10 @@ def metrics(clf, X_dev, y_dev):
     y_pred = clf.predict(X_dev)
 
     conf_mat = confusion_matrix(y_dev, y_pred)
+    roc_auc = roc_auc_score(y_dev, clf.predict_proba(X_dev)[:, 1])
     f1 = f1_score(y_dev, y_pred)
     accuracy = accuracy_score(y_dev, y_pred)
-    return conf_mat, f1, accuracy
+    return conf_mat, roc_auc, f1, accuracy
 
 
 if __name__ == '__main__':
@@ -51,23 +63,23 @@ if __name__ == '__main__':
     parser.add_argument(
         'labels', help='file containing labels')
     parser.add_argument(
-        'sgd_model_output_file', help='file to contain trained sgd model')
+        'NB_model_output_file', help='file to contain trained NB model')
     parser.add_argument(
-        'sgd_metrics_file', help='file to contain trained sgd model metrics on WikiTrain.csv')
+        'NB_metrics_file', help='file to contain trained NB model metrics on WikiTrain.csv')
     args = parser.parse_args()
-    print("SGD: Splitting data...")
+    print("NB: Splitting data...")
     X_train, y_train, X_dev, y_dev = split(args.vectorized_training_data_file, args.labels)
-    print("SGD: Training model...")
+    print("NB: Training model...")
     clf, time_to_train = train(X_train, y_train)
-    print("SGD: Getting metrics...")
-    conf_mat, f1, accuracy = metrics(clf, X_dev, y_dev)
+    print("NB: Getting metrics...")
+    conf_mat, roc_auc, f1, accuracy = metrics(clf, X_dev, y_dev)
 
-    print("SGD: Writing results...")
-    pickle.dump(clf, open(args.sgd_model_output_file, 'wb'))
-    metrics_dict = {'accuracy': accuracy, 'f1': f1, 'time_to_train': time_to_train}
-    with open(args.sgd_metrics_file, 'w') as metrics_file:
+    print("NB: Writing results...")
+    pickle.dump(clf, open(args.NB_model_output_file, 'wb'))
+    metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
+    with open(args.NB_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
-    # with open(args.logreg_metrics_file, 'w') as metrics_file:
+    # with open(args.NB_metrics_file, 'w') as metrics_file:
     #     metrics_file.write('\n'.join([
     #         "Metrics for baseline model. ",
     #         "Use these as criteria of success for future models. ",

@@ -7,13 +7,19 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
 import pickle
+import numpy as np
 
 RANDOM_SEED = 1337
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).iloc[:10000]
-    y = pd.read_pickle(labels).iloc[:10000]
+    X = pd.read_pickle(vectorized_train)
+    #X[pd.isnull(X)] = 0.
+    y = pd.read_pickle(labels)
+    print("Subsetting data...")
+    random_indices = np.random.choice(range(len(X)), 10000, replace=False)
+    X = X.iloc[random_indices]
+    y = y.iloc[random_indices]
     print(X.shape,y.shape)
     # print(X.head())
     # print(y.head())
