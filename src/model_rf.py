@@ -18,8 +18,8 @@ RANDOM_SEED = 1337
 # def create_score_interactions()
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train)
-    # X[pd.isnull(X)] = 0.
+    X = pd.read_pickle(vectorized_train).astype(pd.SparseDtype('float', 0.))
+    # X[pd.isnull(X)] = 0
     y = pd.read_pickle(labels)
     # p = PCA(n_components=20)
     # X = p.fit_transform(X)

@@ -13,9 +13,14 @@ RANDOM_SEED = 1337
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train)
-    #X[pd.isnull(X)] = 0.
+    X = pd.read_pickle(vectorized_train).astype(pd.SparseDtype('float', 0.))
+    scaler = RobustScaler() #added
+    pca = PCA(n_components=5, random_state=1337) #added
+    X = pd.concat([X, pd.DataFrame(pca.fit_transform(X))], axis=1) #added
+    X = scaler.fit_transform(X) #added
+    # X[pd.isnull(X)] = 0.
     y = pd.read_pickle(labels)
+    print(y.shape)
     print("Subsetting data...")
     random_indices = np.random.choice(range(len(X)), 10000, replace=False)
     X = X.iloc[random_indices]

@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 import pickle
 import time
 import numpy as np
+from sklearn.preprocessing import RobustScaler
 
 RANDOM_SEED = 1337
 
@@ -32,7 +33,7 @@ limit_to = [
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).loc[:, limit_to]
+    X = pd.read_pickle(vectorized_train).loc[:, limit_to].astype(pd.SparseDtype('float', 0.))
     ss = StandardScaler()
     X = ss.fit_transform(X)
     y = pd.read_pickle(labels)

@@ -8,14 +8,20 @@ from sklearn.model_selection import train_test_split
 import pickle
 import time
 import numpy as np
+import sys
+from sklearn.preprocessing import RobustScaler
 
 RANDOM_SEED = 1337
-
+sys.setrecursionlimit(10000)
 
 def split(vectorized_train, labels,subset=1000000):
     print("Reading data...")
-    X = pd.read_pickle(vectorized_train)
-    #X[pd.isnull(X)]=0.
+    X = pd.read_pickle(vectorized_train).astype(pd.SparseDtype('float', 0.))
+    scaler = RobustScaler() #added
+    pca = PCA(n_components=5, random_state=1337) #added
+    X = pd.concat([X, pd.DataFrame(pca.fit_transform(X))], axis=1) #added
+    X = scaler.fit_transform(X) #added
+    # X[pd.isnull(X)]=0.
     y = pd.read_pickle(labels)
     # p = PCA(n_components=20)
     # X=p.fit_transform(X)
