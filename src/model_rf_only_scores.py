@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 import pickle
 import time
 import numpy as np
+from tqdm import tqdm
 
 RANDOM_SEED = 1337
 
@@ -18,8 +19,8 @@ limit_to = [
     'mean_age',
     'median_age',
     'max_age',
-    'mean_perc_known_lem',
-    'median_perc_known_lem',
+    'mean_perc_known_lem',  #
+    'median_perc_known_lem',  #
     'mean_freq_pm',
     'median_freq_pm',
     'count_uncommon',
@@ -27,14 +28,25 @@ limit_to = [
     'mean_concreteness',
     'min_concreteness',
     'mean_perc_known',
-    'min_perc_known'
+    'min_perc_known',  #
+    'mean_syllables',
+    'max_syllables',
+    'min_syllables',
+    'num_words'
 ]
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).loc[:, limit_to]
-    ss = StandardScaler()
-    X = ss.fit_transform(X)
+    X = pd.read_pickle(vectorized_train).loc[:, limit_to].astype(pd.SparseDtype('float', 0.))
+    for col in tqdm(X.columns):
+        if str(X[col].dtype) == 'Sparse[float64, 0]' or str(X[col].dtype) == 'Sparse[float64, 0.0]':
+            X[col] = X[col].sparse.to_dense()
+            X.loc[X[col] < 0, col] = 0.
+            X.loc[pd.isnull(X[col]), col] = 0.
+            X[col] = pd.arrays.SparseArray(X[col])
+    # X = pd.read_pickle(vectorized_train)
+    # ss = StandardScaler()
+    # X = ss.fit_transform(X)
     y = pd.read_pickle(labels)
     print(X.shape, y.shape)
     # print(X.head())
@@ -46,7 +58,7 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = RandomForestClassifier(random_state=RANDOM_SEED, verbose=1, max_depth=16)
+    clf = RandomForestClassifier(random_state=RANDOM_SEED, max_depth=24, verbose=1, n_jobs=-1, n_estimators=1000)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 
@@ -87,6 +99,7 @@ if __name__ == '__main__':
     print("Random Forest (Only Scores): Writing results...")
     pickle.dump(clf, open(args.rf_model_output_file, 'wb'))
     metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
+    print(metrics_dict)
     with open(args.rf_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
     # with open(args.logreg_metrics_file, 'w') as metrics_file:

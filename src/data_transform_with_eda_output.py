@@ -4,13 +4,13 @@ def get_transformed_data(df_path, aoa, concreteness, common_words, count_thresho
     df = pd.read_csv(df_path)
     print(df.columns)
     labels = df['label']
-    tokenized_text = df['original_text'].progress_apply(word_tokenize)
+    tokenized_text = df['original_text'].str.lower().progress_apply(word_tokenize)
     word_label_dict = {}
     tag_label_dict = {}
     pair_label_dict = {}
     tagged_sentences = []
     tagged_sentence_pairs = []
-    for sentence, label in tqdm(zip(tokenized_text, labels),total=df.shape[0]):
+    for sentence, label in tqdm(zip(tokenized_text, labels), total=df.shape[0]):
         tagged_sentence = pos_tag(sentence)
         tagged_sentences.append(tagged_sentence)
         for word, tag in tagged_sentence:
@@ -51,18 +51,30 @@ def get_transformed_data(df_path, aoa, concreteness, common_words, count_thresho
         word_label_dict[word]['total'] = sum_labels
         for label in list(word_label_dict[word].keys()):
             word_label_dict[word][str(label) + ":perc"] = word_label_dict[word][label] / sum_labels
+        if '0:perc' not in word_label_dict[word]:
+            word_label_dict[word]['0:perc'] = 0.
+        if '1:perc' not in word_label_dict[word]:
+            word_label_dict[word]['1:perc'] = 0.
 
     for tag in tqdm(tag_label_dict):
         sum_labels = sum(tag_label_dict[tag].values())
         tag_label_dict[tag]['total'] = sum_labels
         for label in list(tag_label_dict[tag].keys()):
             tag_label_dict[tag][str(label) + ":perc"] = tag_label_dict[tag][label] / sum_labels
+        if '0:perc' not in tag_label_dict[tag]:
+            tag_label_dict[tag]['0:perc'] = 0.
+        if '1:perc' not in tag_label_dict[tag]:
+            tag_label_dict[tag]['1:perc'] = 0.
 
     for pair in tqdm(pair_label_dict):
         sum_labels = sum(pair_label_dict[pair].values())
         pair_label_dict[pair]['total'] = sum_labels
         for label in list(pair_label_dict[pair].keys()):
             pair_label_dict[pair][str(label) + ":perc"] = pair_label_dict[pair][label] / sum_labels
+        if '0:perc' not in pair_label_dict[pair]:
+            pair_label_dict[pair]['0:perc'] = 0.
+        if '1:perc' not in pair_label_dict[pair]:
+            pair_label_dict[pair]['1:perc'] = 0.
 
     usable_words = {word for word in word_label_dict if word_label_dict[word]['total'] >= count_threshold and abs(
         word_label_dict[word][str(1) + ":perc"] - word_label_dict[word][str(0) + ":perc"]) >= label_perc_diff_threshold}
@@ -73,36 +85,46 @@ def get_transformed_data(df_path, aoa, concreteness, common_words, count_thresho
     usable_pairs = {pair for pair in pair_label_dict if pair_label_dict[pair]['total'] >= count_threshold and abs(
         pair_label_dict[pair][str(1) + ":perc"] - pair_label_dict[pair][str(0) + ":perc"]) >= label_perc_diff_threshold}
 
+    print(usable_words)
+
     data_records = []
-    for tagged_sentence, tagged_pairs in tqdm(zip(tagged_sentences, tagged_sentence_pairs),total=df.shape[0]):
+    for tagged_sentence, tagged_pairs in tqdm(zip(tagged_sentences, tagged_sentence_pairs), total=df.shape[0]):
         data_record = {}
         words, tags = zip(*tagged_sentence)
         pairs = [str(pair) for pair in tagged_pairs]
         usable_words_in_sentence = []
         for word in words:
-            if word not in data_record:
-                if word in usable_words:
+            if word in usable_words:
+                if word not in data_record:
                     data_record[word] = 1
                     usable_words_in_sentence.append(word)
+                else:
+                    data_record[word] += 1
 
         for tag in tags:
-            if tag not in data_record:
-                if tag in usable_tags:
+            if tag in usable_tags:
+                if tag not in data_record:
                     data_record[tag] = 1
+                else:
+                    data_record[tag] += 1
 
         for pair in pairs:
-            if pair not in data_record:
-                if pair in usable_pairs:
+            if pair in usable_pairs:
+                if pair not in data_record:
                     data_record[pair] = 1
+                else:
+                    data_record[pair] += 1
 
-        # TODO: Get Scores
+        # Get Scores
         aoa_dict = ref_helpers.get_age_of_acquisition_stats(usable_words_in_sentence, aoa)
         concreteness_dict = ref_helpers.get_concreteness_stats(usable_words_in_sentence, concreteness)
         dale_chall_dict = ref_helpers.get_dale_chall_stats(usable_words_in_sentence, common_words)
+        word_stats_dict = ref_helpers.get_word_stats(usable_words_in_sentence)
 
         data_record.update(aoa_dict)
         data_record.update(concreteness_dict)
         data_record.update(dale_chall_dict)
+        data_record.update(word_stats_dict)
 
         data_records.append(data_record)
 
@@ -139,7 +161,7 @@ if __name__ == "__main__":
     common_words = ref_helpers.get_common_words_dataset(args.common_words_data_file)
     transformed_data, labels, tagged_sentences = get_transformed_data(args.training_data_file, aoa, concreteness,
                                                                       common_words,
-                                                                      count_threshold=1000,
+                                                                      count_threshold=100,
                                                                       label_perc_diff_threshold=0.2)
 
     transformed_data.to_pickle(args.vectorized_training_data_output_file)

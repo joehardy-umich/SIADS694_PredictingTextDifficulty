@@ -9,13 +9,44 @@ from sklearn.preprocessing import StandardScaler
 import pickle
 import time
 import numpy as np
+from tqdm import tqdm
 
 RANDOM_SEED = 1337
 
-#def create_score_interactions()
+# def create_score_interactions()
+
+limit_to = [
+    'mean_age',
+    'median_age',
+    'max_age',
+    'mean_perc_known_lem',
+    'median_perc_known_lem',
+    'mean_freq_pm',
+    'median_freq_pm',
+    'count_uncommon',
+    'perc_uncommon',
+    'mean_concreteness',
+    'min_concreteness',
+    'mean_perc_known',
+    'min_perc_known',
+    'mean_syllables',
+    'max_syllables',
+    'min_syllables',
+    'num_words'
+]
+
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).iloc[:,-5:]
+    X = pd.read_pickle(vectorized_train).loc[:, limit_to].astype(pd.SparseDtype('float', 0.))
+    for col in tqdm(X.columns):
+        if str(X[col].dtype) == 'Sparse[float64, 0]' or str(X[col].dtype) == 'Sparse[float64, 0.0]':
+            X[col] = X[col].sparse.to_dense()
+            X.loc[X[col] < 0, col] = 0.
+            X.loc[pd.isnull(X[col]), col] = 0.
+            X[col] = pd.arrays.SparseArray(X[col])
+
+    ss = StandardScaler()
+    X = ss.fit_transform(X)
     y = pd.read_pickle(labels)
     print(X.shape, y.shape)
     # print(X.head())
@@ -27,7 +58,7 @@ def split(vectorized_train, labels):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = LogisticRegression(random_state=RANDOM_SEED, solver='lbfgs', verbose=1)
+    clf = LogisticRegression(random_state=RANDOM_SEED, solver='lbfgs', verbose=1,max_iter=2000)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 
@@ -68,6 +99,7 @@ if __name__ == '__main__':
     print("Log Reg (Only Scores): Writing results...")
     pickle.dump(clf, open(args.logreg_model_output_file, 'wb'))
     metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
+    print(metrics_dict)
     with open(args.logreg_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
     # with open(args.logreg_metrics_file, 'w') as metrics_file:

@@ -90,8 +90,8 @@ def get_dale_chall_stats(list_of_words, common_words):
             word_count += 1
     l = len(list_of_words)
     return {
-        'count_uncommon': word_count if word_count>0 else -1,
-        'perc_uncommon': word_count / l if l>0 else -1
+        'count_uncommon': word_count if word_count > 0 else -1,
+        'perc_uncommon': word_count / l if l > 0 else -1
     }
 
 
@@ -177,11 +177,11 @@ def get_minimum_syllables_in_one_word(list_of_words):
 
 
 def get_word_stats(list_of_words):
-    s = sum((1. if c in vowels else 0 for c in word) for word in list_of_words)
+    s = [sum(1. if c in vowels else 0 for c in word) for word in list_of_words]
     return {
-        'mean_syllables': np.mean(s),
-        'max_syllables': np.max(s),
-        'min_syllables': np.min(s),
+        'mean_syllables': np.mean(s) if s else -1,
+        'max_syllables': np.max(s) if s else -1,
+        'min_syllables': np.min(s) if s else -1,
         'num_words': len(list_of_words)
     }
 

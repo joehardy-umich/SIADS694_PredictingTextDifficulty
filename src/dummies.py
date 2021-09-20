@@ -19,7 +19,7 @@ def get_clfs():
 
 
 def split(vectorized_train, labels):
-    X = pd.read_pickle(vectorized_train).iloc[:,-5:]
+    X = pd.read_pickle(vectorized_train)#.iloc[:,-5:]
     y = pd.read_pickle(labels)
     print(X.shape, y.shape)
     # print(X.head())

@@ -1,36 +1,60 @@
 import json
 
 import pandas as pd
-from sklearn.naive_bayes import CategoricalNB as nb
+from sklearn.naive_bayes import ComplementNB as nb
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 import pickle
 import time
 import numpy as np
+from collections import Counter
+from tqdm import tqdm
 
 RANDOM_SEED = 1337
 
 
-def split(vectorized_train, labels, subset=10000):
+def split(vectorized_train, labels, subset=-1):#int(416000*0.8)):
     print("Reading data...")
-    X = pd.read_pickle(vectorized_train)
-    X[pd.isnull(X)] = 0.
-    X[X < 0] = 0.
+    X = pd.read_pickle(vectorized_train).astype(pd.SparseDtype('float', 0.))
+    print(X.shape,X.columns)
+    # for col in tqdm(X.columns):
+    #     if str(X[col].dtype) == 'Sparse[float64, 0]' or str(X[col].dtype) == 'Sparse[float64, 0.0]':
+    #         X[col] = X[col].sparse.to_dense()
+    #         X.loc[X[col] < 0, col] = 0.
+    #         X.loc[pd.isnull(X[col]), col] = 0.
+    #         X[col] = pd.arrays.SparseArray(X[col])
+
+    # print(Counter(X.dtypes.values))
+
     y = pd.read_pickle(labels)
     # p = PCA(n_components=20)
     # X = p.fit_transform(X)
     # print(labels)
-
-    # print("Subsetting data...")
-    # random_indices = np.random.choice(range(len(X)), subset, replace=False)
-    # X = X.iloc[random_indices]
-    # y = y.iloc[random_indices]
+    if subset > 0:
+        print("Subsetting data...")
+        random_indices = np.random.choice(range(len(X)), subset, replace=False)
+        X_old = X
+        y_old = y
+        X = X.iloc[random_indices]
+        y = y.iloc[random_indices]
     # print(X.shape, y.shape)
     # print(X.head())
     # print(y.head())
+    print("Assigning split...")
+    X_train, X_dev, y_train, y_dev = train_test_split(np.arange(0, X.shape[0]), np.arange(0, y.shape[0]), test_size=0.2,
+                                                      random_state=RANDOM_SEED)
     print("Performing split...")
-    X_train, X_dev, y_train, y_dev = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
+    X_train = X.iloc[X_train]
+    # print(X_train.describe())
+    X_dev = X.iloc[X_dev]
+    y_train = y.iloc[y_train]
+    y_dev = y.iloc[y_dev]
+
+    print(X_dev)
+    if subset > 0:
+        X_dev = pd.concat([X_dev, X_old.iloc[np.invert(random_indices)]])
+        y_dev = pd.concat([y_dev, y_old.iloc[np.invert(random_indices)]])
     print(X_train.shape, y_train.shape, X_dev.shape, y_dev.shape)
     return X_train, y_train, X_dev, y_dev
 
@@ -77,6 +101,7 @@ if __name__ == '__main__':
     print("NB: Writing results...")
     pickle.dump(clf, open(args.NB_model_output_file, 'wb'))
     metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
+    print(metrics_dict)
     with open(args.NB_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
     # with open(args.NB_metrics_file, 'w') as metrics_file:
