@@ -13,7 +13,7 @@ samples = 1000000
 def vectorize(original_df):
     df = pd.read_csv(
         original_df
-    ).sample(frac=1, random_state=RANDOM_SEED)
+    )#.sample(frac=1, random_state=RANDOM_SEED)
     print(df.head())
     tfidf = TfidfVectorizer(stop_words='english', min_df=50, max_features=10000)  # 55,000
     vectorized_df = pd.DataFrame.sparse.from_spmatrix(tfidf.fit_transform(df['original_text']))
@@ -54,7 +54,7 @@ def get_stops():
 def vectorize_lemmatize(original_df):
     df = pd.read_csv(
         original_df
-    ).sample(frac=1, random_state=RANDOM_SEED)
+    )#.sample(frac=1, random_state=RANDOM_SEED)
     print(df.head())
     lemma_stops = get_lemma_stops()
     lt = LemmaTokenizer()

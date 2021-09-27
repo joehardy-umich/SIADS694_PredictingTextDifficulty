@@ -1,4 +1,5 @@
-def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,tag_eda_path,pair_eda_path):#count_threshold=1000, label_perc_diff_threshold=0.2):
+def get_transformed_data(df_path, aoa, concreteness, common_words,
+                         count_threshold=100, label_perc_diff_threshold=0.2):
     nltk.download('averaged_perceptron_tagger')
     tqdm.pandas()
     df = pd.read_csv(df_path)
@@ -10,6 +11,8 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,
     pair_label_dict = {}
     tagged_sentences = []
     tagged_sentence_pairs = []
+
+    print("Tagging sentences (1 of 5)")
     for sentence, label in tqdm(zip(tokenized_text, labels), total=df.shape[0]):
         tagged_sentence = pos_tag(sentence)
         tagged_sentences.append(tagged_sentence)
@@ -46,7 +49,7 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,
                         pair_label_dict[pair][label] += 1
         else:
             tagged_sentence_pairs.append([])
-
+    print("Constructing threshold and frequencies for words (2 of 5)")
     for word in tqdm(word_label_dict):
         sum_labels = sum(word_label_dict[word].values())
         word_label_dict[word]['total'] = sum_labels
@@ -57,15 +60,16 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,
         if '1:perc' not in word_label_dict[word]:
             word_label_dict[word]['1:perc'] = 0.
 
-    word_df = pd.DataFrame.from_records(word_label_dict)
-    word_df.T.to_csv(word_eda_path)
+    # word_df = pd.DataFrame.from_records(word_label_dict)
+    # word_df.T.to_csv(word_eda_path)
+    #
+    # tag_df = pd.DataFrame.from_records(tag_label_dict)
+    # tag_df.T.to_csv(tag_eda_path)
+    #
+    # pair_df = pd.DataFrame.from_records(pair_label_dict)
+    # pair_df.T.to_csv(pair_eda_path)
 
-    tag_df = pd.DataFrame.from_records(tag_label_dict)
-    tag_df.T.to_csv(tag_eda_path)
-
-    pair_df = pd.DataFrame.from_records(pair_label_dict)
-    pair_df.T.to_csv(pair_eda_path)
-
+    print("Constructing threshold and frequencies for tags (3 of 5)")
     for tag in tqdm(tag_label_dict):
         sum_labels = sum(tag_label_dict[tag].values())
         tag_label_dict[tag]['total'] = sum_labels
@@ -75,7 +79,7 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,
             tag_label_dict[tag]['0:perc'] = 0.
         if '1:perc' not in tag_label_dict[tag]:
             tag_label_dict[tag]['1:perc'] = 0.
-
+    print("Constructing threshold and frequencies for tag pairs (4 of 5)")
     for pair in tqdm(pair_label_dict):
         sum_labels = sum(pair_label_dict[pair].values())
         pair_label_dict[pair]['total'] = sum_labels
@@ -86,85 +90,68 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,
         if '1:perc' not in pair_label_dict[pair]:
             pair_label_dict[pair]['1:perc'] = 0.
 
-    # usable_words = {word for word in word_label_dict if word_label_dict[word]['total'] >= count_threshold and abs(
-    #     word_label_dict[word][str(1) + ":perc"] - word_label_dict[word][str(0) + ":perc"]) >= label_perc_diff_threshold}
-    # 
-    # usable_tags = {tag for tag in tag_label_dict if tag_label_dict[tag]['total'] >= count_threshold and abs(
-    #     tag_label_dict[tag][str(1) + ":perc"] - tag_label_dict[tag][str(0) + ":perc"]) >= label_perc_diff_threshold}
-    # 
-    # usable_pairs = {pair for pair in pair_label_dict if pair_label_dict[pair]['total'] >= count_threshold and abs(
-    #     pair_label_dict[pair][str(1) + ":perc"] - pair_label_dict[pair][str(0) + ":perc"]) >= label_perc_diff_threshold}
-    # 
-    # print(usable_words)
-    # 
-    # #TODO SUM LABEL 1 and LABEL 0-discriminating features separately [one sum for label 1 contributers and one sum for label 0 contributers]
+    usable_words = {word for word in word_label_dict if word_label_dict[word]['total'] >= count_threshold and abs(
+        word_label_dict[word][str(1) + ":perc"] - word_label_dict[word][str(0) + ":perc"]) >= label_perc_diff_threshold}
+
+    usable_tags = {tag for tag in tag_label_dict if tag_label_dict[tag]['total'] >= count_threshold and abs(
+        tag_label_dict[tag][str(1) + ":perc"] - tag_label_dict[tag][str(0) + ":perc"]) >= label_perc_diff_threshold}
+
+    usable_pairs = {pair for pair in pair_label_dict if pair_label_dict[pair]['total'] >= count_threshold and abs(
+        pair_label_dict[pair][str(1) + ":perc"] - pair_label_dict[pair][str(0) + ":perc"]) >= label_perc_diff_threshold}
+
+    print("Usable Features: Words, Tags, Pairs, Total")
+    print(len(usable_words), len(usable_tags), len(usable_pairs),
+          len(usable_words) + len(usable_tags) + len(usable_pairs))
+
+    print("Constructing data records (5 of 5)")
     data_records = []
     for tagged_sentence, tagged_pairs in tqdm(zip(tagged_sentences, tagged_sentence_pairs), total=df.shape[0]):
-        data_record = {'sum_1': 0, 'sum_0': 0, 'sum_none': 0}
+        data_record = {}  # {'sum_1': 0, 'sum_0': 0, 'sum_none': 0}
         words, tags = zip(*tagged_sentence)
+
         pairs = [str(pair) for pair in tagged_pairs]
         usable_words_in_sentence = []
         for word in words:
-            if word_label_dict[word]['0:perc'] > word_label_dict[word]['1:perc']:
-                data_record['sum_0'] += 1
-            elif word_label_dict[word]['1:perc'] > word_label_dict[word]['0:perc']:
-                data_record['sum_1'] += 1
-            else:
-                data_record['sum_none'] += 1
+            if word in usable_words:
+                if word not in data_record:
+                    data_record[word] = 1
+                    usable_words_in_sentence.append(word)
+                else:
+                    data_record[word] += 1
+
         for tag in tags:
-            if tag_label_dict[tag]['0:perc'] > tag_label_dict[tag]['1:perc']:
-                data_record['sum_0'] += 1
-            elif tag_label_dict[tag]['1:perc'] > tag_label_dict[tag]['0:perc']:
-                data_record['sum_1'] += 1
-            else:
-                data_record['sum_none'] += 1
+            if tag in usable_tags:
+                if tag not in data_record:
+                    data_record[tag] = 1
+                else:
+                    data_record[tag] += 1
 
         for pair in pairs:
-            if pair_label_dict[pair]['0:perc'] > pair_label_dict[pair]['1:perc']:
-                data_record['sum_0'] += 1
-            elif pair_label_dict[pair]['1:perc'] > pair_label_dict[pair]['0:perc']:
-                data_record['sum_1'] += 1
-            else:
-                data_record['sum_none'] += 1
-
-        #     pairs = [str(pair) for pair in tagged_pairs]
-        #     usable_words_in_sentence = []
-        #     for word in words:
-        #         if word in usable_words:
-        #             if word not in data_record:
-        #                 data_record[word] = 1
-        #                 usable_words_in_sentence.append(word)
-        #             else:
-        #                 data_record[word] += 1
-        #
-        #     for tag in tags:
-        #         if tag in usable_tags:
-        #             if tag not in data_record:
-        #                 data_record[tag] = 1
-        #             else:
-        #                 data_record[tag] += 1
-        #
-        #     for pair in pairs:
-        #         if pair in usable_pairs:
-        #             if pair not in data_record:
-        #                 data_record[pair] = 1
-        #             else:
-        #                 data_record[pair] += 1
+            if pair in usable_pairs:
+                if pair not in data_record:
+                    data_record[pair] = 1
+                else:
+                    data_record[pair] += 1
 
         # Get Scores
-        aoa_dict = ref_helpers.get_age_of_acquisition_stats(words, aoa)
-        concreteness_dict = ref_helpers.get_concreteness_stats(words, concreteness)
-        dale_chall_dict = ref_helpers.get_dale_chall_stats(words, common_words)
-        word_stats_dict = ref_helpers.get_word_stats(words)
+        aoa_dict = ref_helpers.get_age_of_acquisition_stats(usable_words_in_sentence, aoa)
+        concreteness_dict = ref_helpers.get_concreteness_stats(usable_words_in_sentence, concreteness)
+        dale_chall_dict = ref_helpers.get_dale_chall_stats(usable_words_in_sentence, common_words)
+        # word_stats_dict = ref_helpers.get_word_stats(words)
 
         data_record.update(aoa_dict)
         data_record.update(concreteness_dict)
         data_record.update(dale_chall_dict)
-        data_record.update(word_stats_dict)
+        # data_record.update(word_stats_dict)
 
         data_records.append(data_record)
-
-    return pd.DataFrame(data_records), df['label'], tagged_sentences
+    rdf = pd.DataFrame(data_records)
+    # rdf[pd.isnull(df)] = 0.
+    # # df = df.astype(pd.SparseDtype('float', 0.))
+    # rdf['sum_all'] = rdf['sum_1'] + rdf['sum_0'] + rdf['sum_none']
+    # rdf['sum_ratio'] = rdf['sum_1'] / (rdf['sum_0'] + rdf['sum_none'] + 1)
+    # rdf['sum_diff'] = rdf['sum_1'] - rdf['sum_0']
+    return rdf, df['label'], tagged_sentences
 
 
 if __name__ == "__main__":
@@ -177,6 +164,8 @@ if __name__ == "__main__":
     import pickle
 
     parser = argparse.ArgumentParser()
+
+    # INPUTS
     parser.add_argument(
         'training_data_file', help='file containing training data')
     parser.add_argument(
@@ -185,25 +174,27 @@ if __name__ == "__main__":
         'concreteness_data_file', help='file containing word concreteness score data')
     parser.add_argument(
         'common_words_data_file', help='file containing most common word data')
+
+    # OUTPUTS
     parser.add_argument(
         'vectorized_training_data_output_file', help='file to contain vectorized training data')
     parser.add_argument(
         'labels_output_file', help='file to contain labels')
     parser.add_argument(
         'tagged_sentences_output_file', help='file to contain tagged sentences')
-    parser.add_argument(
-        'word_eda_data_file', help='file containing word eda data')
-    parser.add_argument(
-        'tag_eda_data_file', help='file containing tag eda data')
-    parser.add_argument(
-        'pair_eda_data_file', help='file containing pair eda data')
+
+    # METRICS
+    # N/A
+
+    # MAIN---
     args = parser.parse_args()
+
     aoa = ref_helpers.get_aoa_dataset(args.aoa_data_file)
     concreteness = ref_helpers.get_concreteness_dataset(args.concreteness_data_file)
     common_words = ref_helpers.get_common_words_dataset(args.common_words_data_file)
+
     transformed_data, labels, tagged_sentences = get_transformed_data(args.training_data_file, aoa, concreteness,
-                                                                      common_words, args.word_eda_data_file,
-                                                              args.tag_eda_data_file, args.pair_eda_data_file)
+                                                                      common_words)
 
     transformed_data.to_pickle(args.vectorized_training_data_output_file)
     labels.to_pickle(args.labels_output_file)

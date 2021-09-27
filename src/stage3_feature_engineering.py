@@ -79,6 +79,7 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,
             tag_label_dict[tag]['0:perc'] = 0.
         if '1:perc' not in tag_label_dict[tag]:
             tag_label_dict[tag]['1:perc'] = 0.
+
     print("Constructing threshold and frequencies for tag pairs (4 of 5)")
     for pair in tqdm(pair_label_dict):
         sum_labels = sum(pair_label_dict[pair].values())
@@ -134,23 +135,22 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,
                     data_record[pair] += 1
 
         # Get Scores
-        aoa_dict = ref_helpers.get_age_of_acquisition_stats(usable_words_in_sentence, aoa)
-        concreteness_dict = ref_helpers.get_concreteness_stats(usable_words_in_sentence, concreteness)
-        dale_chall_dict = ref_helpers.get_dale_chall_stats(usable_words_in_sentence, common_words)
-        # word_stats_dict = ref_helpers.get_word_stats(words)
+        aoa_dict = ref_helpers.get_age_of_acquisition_stats(words, aoa)
+        concreteness_dict = ref_helpers.get_concreteness_stats(words, concreteness)
+        dale_chall_dict = ref_helpers.get_dale_chall_stats(words, common_words)
+        word_stats_dict = ref_helpers.get_word_stats(words)
 
         data_record.update(aoa_dict)
         data_record.update(concreteness_dict)
         data_record.update(dale_chall_dict)
-        # data_record.update(word_stats_dict)
+        data_record.update(word_stats_dict)
 
         data_records.append(data_record)
     rdf = pd.DataFrame(data_records)
-    # rdf[pd.isnull(df)] = 0.
-    # # df = df.astype(pd.SparseDtype('float', 0.))
-    # rdf['sum_all'] = rdf['sum_1'] + rdf['sum_0'] + rdf['sum_none']
-    # rdf['sum_ratio'] = rdf['sum_1'] / (rdf['sum_0'] + rdf['sum_none'] + 1)
-    # rdf['sum_diff'] = rdf['sum_1'] - rdf['sum_0']
+    rdf[pd.isnull(df)] = 0.
+    rdf['sum_all'] = rdf['sum_1'] + rdf['sum_0'] + rdf['sum_none']
+    rdf['sum_ratio'] = rdf['sum_1'] / (rdf['sum_0'] + rdf['sum_none'] + 1)
+    rdf['sum_diff'] = rdf['sum_1'] - rdf['sum_0']
     return rdf, df['label'], tagged_sentences
 
 

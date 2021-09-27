@@ -22,10 +22,10 @@ limit_to = [
 
 
 def combine(eda, vector):
-    eda_df = get_summed_cols(pd.read_pickle(eda),'eda')
-    eda_df[pd.isnull(eda_df)] = 0.
+    eda_df = pd.read_pickle(eda)
+    #eda_df[pd.isnull(eda_df)] = 0.
 
-    vector_df = get_summed_cols(pd.read_pickle(vector).iloc[:, :-5],'tfidf')
+    vector_df = get_summed_cols(pd.read_pickle(vector),'tfidf')
 
     print(eda_df.shape, vector_df.shape)
 
@@ -68,14 +68,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'eda_training_data_file', help='file containing eda training data')
+        'eda_test_data_file', help='file containing eda test data')
     parser.add_argument(
-        'vector_training_data_file', help='file containing vector training data')
+        'vector_test_data_file', help='file containing vector test data')
     parser.add_argument(
         'data_output_file', help='file to contain combined baseline model')
     args = parser.parse_args()
 
     print("Combining data...")
-    combined = combine(args.eda_training_data_file, args.vector_training_data_file)
+    combined = combine(args.eda_test_data_file, args.vector_test_data_file)
 
     pickle.dump(combined, open(args.data_output_file, 'wb'))

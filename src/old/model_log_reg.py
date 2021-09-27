@@ -1,7 +1,7 @@
 import json
 
 import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix, roc_auc_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split
@@ -36,7 +36,11 @@ limit_to = [
 
 def split(vectorized_train, labels, subset=1000000):
     print("Reading data...")
-    X = pd.read_pickle(vectorized_train).astype(pd.SparseDtype('float', 0.))
+    X = pd.read_pickle(vectorized_train)#.astype(pd.SparseDtype('float', 0.))
+    X[pd.isnull(X)] = 0.
+    X['sum_all'] = X['sum_1'] + X['sum_0'] + X['sum_none']
+    X['sum_ratio'] = X['sum_1'] / (X['sum_0'] + X['sum_none'] + 1)
+    X['sum_diff'] = X['sum_1'] - X['sum_0']
     # X = X.drop(columns='median_perc_known_lem')
     # x_fis = [0.0777801, 0.06242877, 0.07475293, 0.02180517, 0.06721678, 0.0633527, 0.06518147, 0.038125, 0.01709966,
     #          0.01260322, 0.06371432, 0.02656552, 0.04307288, 0.02682482, 0.01116191, 0.0473337, 0.10916434, 0.17181673]
@@ -61,12 +65,16 @@ def split(vectorized_train, labels, subset=1000000):
     #             else:
     #                 col_sum = X[col]
     #             X = X.drop(columns=col)
-    scaler = RobustScaler()
-    pca = PCA(n_components=5)
-    X = pd.concat([X,pd.DataFrame(pca.fit_transform(X))],axis=1)
-    X = scaler.fit_transform(X)
-    # X[pd.isnull(X)]=0.
     y = pd.read_pickle(labels)
+    #X = X[['num_words', 'min_syllables', 'mean_syllables', 'count_uncommon', 'sentence_sum_eda', 'median_freq_pm']]
+
+    scaler = RobustScaler()
+    # pca = PCA(n_components=5)
+    # X = pd.concat([X, pd.DataFrame(pca.fit_transform(X))], axis=1)
+    X = scaler.fit_transform(X)
+
+    # X[pd.isnull(X)]=0.
+
     # p = PCA(n_components=20)
     # X=p.fit_transform(X)
     # print("Subsetting data...")
@@ -84,21 +92,22 @@ def split(vectorized_train, labels, subset=1000000):
 
 def train(X_train, y_train):
     t0 = time.time()
-    clf = KNeighborsClassifier(n_neighbors=75,n_jobs=-1)
+    clf = LogisticRegression(random_state=RANDOM_SEED, solver='lbfgs', verbose=1, max_iter=10000)
     clf.fit(X_train, y_train)
     time_to_train = time.time() - t0
 
     return clf, time_to_train
 
 
-def metrics(clf, X_dev, y_dev):
+def metrics(clf, X_dev, y_dev, X_train, y_train):
     y_pred = clf.predict(X_dev)
 
     conf_mat = confusion_matrix(y_dev, y_pred)
     roc_auc = roc_auc_score(y_dev, clf.predict_proba(X_dev)[:, 1])
     f1 = f1_score(y_dev, y_pred)
     accuracy = accuracy_score(y_dev, y_pred)
-    return conf_mat, roc_auc, f1, accuracy
+    train_accuracy = accuracy_score(y_train, clf.predict(X_train))
+    return conf_mat, roc_auc, f1, accuracy,train_accuracy
 
 
 if __name__ == '__main__':
@@ -110,24 +119,25 @@ if __name__ == '__main__':
     parser.add_argument(
         'labels', help='file containing labels')
     parser.add_argument(
-        'KNN_model_output_file', help='file to contain trained KNN model')
+        'logreg_model_output_file', help='file to contain trained log reg model')
     parser.add_argument(
-        'KNN_metrics_file', help='file to contain trained KNN model metrics on WikiTrain.csv')
+        'logreg_metrics_file', help='file to contain trained log reg model metrics on WikiTrain.csv')
     args = parser.parse_args()
-    print("KNN: Splitting data...")
+    print("Log Reg: Splitting data...")
     X_train, y_train, X_dev, y_dev = split(args.vectorized_training_data_file, args.labels)
-    print("KNN: Training model...")
+    print("Log Reg: Training model...")
     clf, time_to_train = train(X_train, y_train)
-    print("KNN: Getting metrics...")
-    conf_mat, roc_auc, f1, accuracy = metrics(clf, X_dev, y_dev)
+    print("Log Reg: Getting metrics...")
+    conf_mat, roc_auc, f1, accuracy, train_accuracy = metrics(clf, X_dev, y_dev, X_train, y_train)
 
-    print("KNN: Writing results...")
-    pickle.dump(clf, open(args.KNN_model_output_file, 'wb'))
-    metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train}
+    print("Log Reg: Writing results...")
+    pickle.dump(clf, open(args.logreg_model_output_file, 'wb'))
+    metrics_dict = {'accuracy': accuracy, 'roc_auc': roc_auc, 'f1': f1, 'time_to_train': time_to_train,
+                    'train_accuracy': train_accuracy}
     print(metrics_dict)
-    with open(args.KNN_metrics_file, 'w') as metrics_file:
+    with open(args.logreg_metrics_file, 'w') as metrics_file:
         json.dump(metrics_dict, metrics_file)
-    # with open(args.KNN_metrics_file, 'w') as metrics_file:
+    # with open(args.logreg_metrics_file, 'w') as metrics_file:
     #     metrics_file.write('\n'.join([
     #         "Metrics for baseline model. ",
     #         "Use these as criteria of success for future models. ",

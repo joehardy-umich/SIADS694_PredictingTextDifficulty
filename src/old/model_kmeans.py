@@ -34,7 +34,7 @@ def build_dfs(vectorized_train):
 
 def train(X_limited):
     t0 = time.time()
-    kmeans = KMeans(n_clusters=25, init='k-means++', max_iter=300, n_init=10, random_state=42).fit(X_limited)
+    kmeans = KMeans(n_clusters=25, init='k-means++', max_iter=300, n_init=10, random_state=42,verbose=1).fit(X_limited)
     time_to_train = time.time() - t0
     print("Kmeans: Step 2 - model trained")
     return kmeans, time_to_train

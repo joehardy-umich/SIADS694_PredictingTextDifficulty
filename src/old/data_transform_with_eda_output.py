@@ -1,4 +1,4 @@
-def get_transformed_data(df_path, aoa, concreteness, common_words, count_threshold=1000, label_perc_diff_threshold=0.2):
+def get_transformed_data(df_path, aoa, concreteness, common_words,word_eda_path,tag_eda_path,pair_eda_path):#count_threshold=1000, label_perc_diff_threshold=0.2):
     nltk.download('averaged_perceptron_tagger')
     tqdm.pandas()
     df = pd.read_csv(df_path)
@@ -56,6 +56,15 @@ def get_transformed_data(df_path, aoa, concreteness, common_words, count_thresho
             word_label_dict[word]['0:perc'] = 0.
         if '1:perc' not in word_label_dict[word]:
             word_label_dict[word]['1:perc'] = 0.
+
+    word_df = pd.DataFrame.from_records(word_label_dict)
+    word_df.T.to_csv(word_eda_path)
+
+    tag_df = pd.DataFrame.from_records(tag_label_dict)
+    tag_df.T.to_csv(tag_eda_path)
+
+    pair_df = pd.DataFrame.from_records(pair_label_dict)
+    pair_df.T.to_csv(pair_eda_path)
 
     for tag in tqdm(tag_label_dict):
         sum_labels = sum(tag_label_dict[tag].values())
@@ -182,14 +191,19 @@ if __name__ == "__main__":
         'labels_output_file', help='file to contain labels')
     parser.add_argument(
         'tagged_sentences_output_file', help='file to contain tagged sentences')
+    parser.add_argument(
+        'word_eda_data_file', help='file containing word eda data')
+    parser.add_argument(
+        'tag_eda_data_file', help='file containing tag eda data')
+    parser.add_argument(
+        'pair_eda_data_file', help='file containing pair eda data')
     args = parser.parse_args()
     aoa = ref_helpers.get_aoa_dataset(args.aoa_data_file)
     concreteness = ref_helpers.get_concreteness_dataset(args.concreteness_data_file)
     common_words = ref_helpers.get_common_words_dataset(args.common_words_data_file)
     transformed_data, labels, tagged_sentences = get_transformed_data(args.training_data_file, aoa, concreteness,
-                                                                      common_words,
-                                                                      count_threshold=100,
-                                                                      label_perc_diff_threshold=0.2)
+                                                                      common_words, args.word_eda_data_file,
+                                                              args.tag_eda_data_file, args.pair_eda_data_file)
 
     transformed_data.to_pickle(args.vectorized_training_data_output_file)
     labels.to_pickle(args.labels_output_file)
