@@ -9,19 +9,23 @@ from tqdm import tqdm
 
 def get_aoa_dataset(aoa_path):
     # get word/aoa pairs
-    return pd.read_csv(aoa_path, encoding='ISO-8859-1')[['Word', 'AoA_Kup_lem', 'Freq_pm', 'Perc_known_lem']].rename(
+    df = pd.read_csv(aoa_path, encoding='ISO-8859-1')[['Word', 'AoA_Kup_lem', 'Freq_pm', 'Perc_known_lem']].rename(
         columns={'AoA_Kup_lem': 'AoA'})
+    df['Word'] = df['Word'].str.lower()
+    return df
 
 
 def get_common_words_dataset(common_words_path):
     # get list (python set) of common words
-    return set(map(str.strip, open(common_words_path, 'r').readlines()))
+    return set(map(lambda w: w.lower().strip(), open(common_words_path, 'r').readlines()))
 
 
 def get_concreteness_dataset(concreteness_path):
     # get word/mean concreteness rating pairs
-    return pd.read_csv(concreteness_path, sep='\t')[['Word', 'Conc.M', 'Percent_known']].rename(
+    df = pd.read_csv(concreteness_path, sep='\t')[['Word', 'Conc.M', 'Percent_known']].rename(
         columns={'Conc.M': 'Concreteness'})
+    df['Word'] = df['Word'].str.lower()
+    return df
 
 
 # helpers (assess a sentence for its scores)
@@ -146,11 +150,13 @@ def get_concreteness_stats(list_of_words, concreteness):
     data = [concreteness.iloc[index[0][0]][['Concreteness', 'Percent_known']] for index in indices if index.size > 0]
     perc_known = [d['Percent_known'] for d in data]
     concreteness_ = [d['Concreteness'] for d in data]
+    unknown_words = sum(1 for score in [d['Percent_known'] for d in data] if score<0.95)
     return {
         'mean_concreteness': np.nanmean(concreteness_) if data else -1,
         'min_concreteness': np.nanmin(concreteness_) if data else -1,
         'mean_perc_known': np.nanmean(perc_known) if data else -1,
         'min_perc_known': np.nanmin(perc_known) if data else -1,
+        'count_unknown_words':unknown_words
     }
 
 
