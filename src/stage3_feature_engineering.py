@@ -91,48 +91,35 @@ def get_transformed_data(df_path, aoa, concreteness, common_words,
         if '1:perc' not in pair_label_dict[pair]:
             pair_label_dict[pair]['1:perc'] = 0.
 
-    usable_words = {word for word in word_label_dict if word_label_dict[word]['total'] >= count_threshold and abs(
-        word_label_dict[word][str(1) + ":perc"] - word_label_dict[word][str(0) + ":perc"]) >= label_perc_diff_threshold}
-
-    usable_tags = {tag for tag in tag_label_dict if tag_label_dict[tag]['total'] >= count_threshold and abs(
-        tag_label_dict[tag][str(1) + ":perc"] - tag_label_dict[tag][str(0) + ":perc"]) >= label_perc_diff_threshold}
-
-    usable_pairs = {pair for pair in pair_label_dict if pair_label_dict[pair]['total'] >= count_threshold and abs(
-        pair_label_dict[pair][str(1) + ":perc"] - pair_label_dict[pair][str(0) + ":perc"]) >= label_perc_diff_threshold}
-
-    print("Usable Features: Words, Tags, Pairs, Total")
-    print(len(usable_words), len(usable_tags), len(usable_pairs),
-          len(usable_words) + len(usable_tags) + len(usable_pairs))
-
     print("Constructing data records (5 of 5)")
     data_records = []
     for tagged_sentence, tagged_pairs in tqdm(zip(tagged_sentences, tagged_sentence_pairs), total=df.shape[0]):
-        data_record = {}  # {'sum_1': 0, 'sum_0': 0, 'sum_none': 0}
+        data_record = {'sum_1': 0, 'sum_0': 0, 'sum_none': 0}
         words, tags = zip(*tagged_sentence)
 
         pairs = [str(pair) for pair in tagged_pairs]
-        usable_words_in_sentence = []
         for word in words:
-            if word in usable_words:
-                if word not in data_record:
-                    data_record[word] = 1
-                    usable_words_in_sentence.append(word)
-                else:
-                    data_record[word] += 1
-
+            if word_label_dict[word]['0:perc'] > word_label_dict[word]['1:perc']:
+                data_record['sum_0'] += 1
+            elif word_label_dict[word]['1:perc'] > word_label_dict[word]['0:perc']:
+                data_record['sum_1'] += 1
+            else:
+                data_record['sum_none'] += 1
         for tag in tags:
-            if tag in usable_tags:
-                if tag not in data_record:
-                    data_record[tag] = 1
-                else:
-                    data_record[tag] += 1
+            if tag_label_dict[tag]['0:perc'] > tag_label_dict[tag]['1:perc']:
+                data_record['sum_0'] += 1
+            elif tag_label_dict[tag]['1:perc'] > tag_label_dict[tag]['0:perc']:
+                data_record['sum_1'] += 1
+            else:
+                data_record['sum_none'] += 1
 
         for pair in pairs:
-            if pair in usable_pairs:
-                if pair not in data_record:
-                    data_record[pair] = 1
-                else:
-                    data_record[pair] += 1
+            if pair_label_dict[pair]['0:perc'] > pair_label_dict[pair]['1:perc']:
+                data_record['sum_0'] += 1
+            elif pair_label_dict[pair]['1:perc'] > pair_label_dict[pair]['0:perc']:
+                data_record['sum_1'] += 1
+            else:
+                data_record['sum_none'] += 1
 
         # Get Scores
         aoa_dict = ref_helpers.get_age_of_acquisition_stats(words, aoa)

@@ -61,7 +61,7 @@ def train_models(X_train, y_train, stage, model_type=['full', 'baseline'][0]):
                   SGDClassifier(random_state=RANDOM_SEED, verbose=1, max_iter=500, n_iter_no_change=100, tol=1e-4,
                                 loss='log'),
                   MLPClassifier(random_state=RANDOM_SEED, verbose=1, solver='adam',
-                                # activation='relu', learning_rate='adaptive',
+                                # activation='relu', learning_rate='adaptive',git
                                 hidden_layer_sizes=(200, 150, 50), max_iter=200),
                   RandomForestClassifier(random_state=RANDOM_SEED, verbose=1, max_depth=None,
                                          n_jobs=-1, n_estimators=1000,
